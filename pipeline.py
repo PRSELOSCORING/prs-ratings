@@ -1,11 +1,12 @@
 """
 Update the PRS Pro Series ratings.
 
-    python pipeline.py            # discover matches, download new results, recompute, write the site
+    python pipeline.py            # full run: discover matches, download results, recompute, write the site
+    python pipeline.py --auto     # hourly check: only does work when a match has just ended (full run once a day)
     python pipeline.py --offline  # recompute from the saved results only (no internet)
 
 1. Discover Pro Series matches (series page + profiles of top-rated shooters).
-2. Download results for every finished match (re-download recent ones to catch corrections).
+2. Download results once a match's scheduled end time has passed (re-download recent ones to catch corrections).
 3. Recompute the whole season from data/seed.json, in date order, keyed by Impact Scoring shooter id.
 4. Write docs/leaderboard.json + docs/leaderboard.csv (the website) and data/roster.json + data/name_review.csv.
 """
@@ -22,6 +23,9 @@ API = "https://app-api.impactscoring.net/rest/website/"
 PROFILES_TO_SCAN = 40
 SCORE_FIELDS = ("id", "name", "rank", "points", "stagesProgressCount", "stagesCount",
                 "matchDisqualified", "matchHardDisqualified", "divisionName")
+DAILY_HOUR_UTC = 3          # --auto does a full run in this hour (10pm Central daylight / 9pm standard)
+HOURLY_WINDOW = timedelta(hours=48)   # after a match ends, re-check its results every hour for this long
+GIVE_UP_AFTER = timedelta(days=7)     # stop hourly checks for a match whose results never appear
 
 
 def load(name, default=None):
@@ -30,7 +34,7 @@ def load(name, default=None):
 
 
 def save(path, obj):
-    with open(path, "w", encoding="utf-8") as f:
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
         json.dump(obj, f, indent=1, ensure_ascii=False)
 
 
@@ -50,8 +54,16 @@ def api(path):
             time.sleep(5 * (attempt + 1))
 
 
+def utc_now():
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
 def now_str():
-    return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    return utc_now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def parse_time(s):
+    return datetime.strptime(s, "%Y-%m-%d %H:%M:%S")   # Impact Scoring times are UTC
 
 
 # ---------------------------------------------------------------------------
@@ -96,12 +108,28 @@ def discover(cfg, known):
 # 2. results
 # ---------------------------------------------------------------------------
 
-def download_results(cfg, known):
-    now = datetime.now(timezone.utc).replace(tzinfo=None)
+def due_now(cfg, known, now):
+    """Matches worth checking this hour: scheduled end has passed, and either results aren't in yet
+    (for up to a week) or the match ended within the last 48 hours (to catch score corrections)."""
+    due = []
+    for mid, m in known["series"].items():
+        if m.get("canceled") or mid in cfg["exclude_matches"] or not m.get("end"):
+            continue
+        since_end = now - parse_time(m["end"])
+        have = os.path.exists(os.path.join(SCORES, f"{mid}.json"))
+        if timedelta(0) <= since_end and (since_end <= HOURLY_WINDOW or (not have and since_end <= GIVE_UP_AFTER)):
+            due.append(mid)
+    return due
+
+
+def download_results(cfg, known, only=None):
+    now = utc_now()
     for mid, m in sorted(known["series"].items(), key=lambda kv: kv[1]["end"] or ""):
         if m.get("canceled") or mid in cfg["exclude_matches"] or not m.get("end"):
             continue
-        end = datetime.strptime(m["end"], "%Y-%m-%d %H:%M:%S")
+        if only is not None and mid not in only:
+            continue
+        end = parse_time(m["end"])
         path = os.path.join(SCORES, f"{mid}.json")
         if end > now or (os.path.exists(path) and now - end > timedelta(days=cfg["refresh_days"])):
             continue
@@ -245,7 +273,12 @@ def write_outputs(cfg, shooters, rated, review, spellings, history, name_of):
     board = {"updated": now_str(), "season": cfg["season_label"],
              "through": rated[-1] if rated else None, "match_count": len(rated),
              "matches": rated, "shooters": shooters}
-    save(os.path.join(SITE, "leaderboard.json"), board)
+    # keep the old "updated" time when nothing actually changed, so quiet runs don't touch the site
+    path = os.path.join(SITE, "leaderboard.json")
+    old = json.load(open(path, encoding="utf-8")) if os.path.exists(path) else None
+    if old and {**old, "updated": None} == {**board, "updated": None}:
+        board["updated"] = old["updated"]
+    save(path, board)
     save(os.path.join(SITE, "history.json"), {str(k): v for k, v in history.items()})
     with open(os.path.join(SITE, "leaderboard.csv"), "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
@@ -269,12 +302,25 @@ def write_outputs(cfg, shooters, rated, review, spellings, history, name_of):
 def main():
     cfg, known = load("config.json"), load("matches.json", {"series": {}, "not_series": []})
     os.makedirs(SCORES, exist_ok=True)
-    if "--offline" not in sys.argv:
+    now = utc_now()
+    daily = now.hour == DAILY_HOUR_UTC
+    if "--auto" in sys.argv and not daily:
+        due = due_now(cfg, known, now)
+        if not due:
+            print("Nothing due this hour.")
+            return
+        print("Checking results for: " + ", ".join(known["series"][d]["name"] for d in due))
+        download_results(cfg, known, only=set(due))
+        save(os.path.join(DATA, "matches.json"), known)
+    elif "--offline" not in sys.argv:
         print("Discovering matches...")
         discover(cfg, known)
         print("Downloading results...")
         download_results(cfg, known)
         save(os.path.join(DATA, "matches.json"), known)
+        if daily and now.day == 1:
+            # a monthly save keeps GitHub from pausing the schedule during the off-season
+            save(os.path.join(DATA, "last_check.json"), {"checked": now_str()})
     shooters, rated, review, spellings, history, name_of = recompute(cfg, known)
     write_outputs(cfg, shooters, rated, review, spellings, history, name_of)
     flagged = sum(1 for r in review if r["action"].startswith("NOT linked"))

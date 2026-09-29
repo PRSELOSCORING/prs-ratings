@@ -5,13 +5,16 @@ leaderboard page (in `docs/`) that is embedded on the website.
 
 ## What happens automatically
 
-Every **Sunday and Monday night** (10pm Central), GitHub runs `pipeline.py`, which:
+GitHub checks **every hour**. The script knows every match's scheduled end time, so:
 
-1. Finds Pro Series matches that have ended (series page + the top shooters' match lists).
-2. Downloads their results from Impact Scoring. Results from the last 14 days are re-downloaded, so
-   late score corrections are picked up.
-3. Recomputes the whole season from the starting ratings in `data/seed.json`, in date order.
-4. Updates the leaderboard page. The website shows the new numbers within a few minutes.
+- **Within an hour of a match's scheduled end**, its results are downloaded and the whole season is
+  recomputed. For the next 48 hours it re-checks hourly to pick up score corrections.
+- **Once a day** (03:00 UTC = 10pm Central) it does a full check: finds new or rescheduled Pro Series
+  matches and re-downloads anything from the last 14 days.
+- Hours with nothing due finish in seconds, and nothing is saved unless a result actually changed.
+
+Each update recomputes the whole season from the starting ratings in `data/seed.json`, in date
+order, and the website shows the new numbers within a few minutes.
 
 If a run fails, GitHub emails you. To run it right away: **Actions** tab → **Update ratings** →
 **Run workflow**.

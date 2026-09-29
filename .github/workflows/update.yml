@@ -2,9 +2,10 @@ name: Update ratings
 
 on:
   schedule:
-    # 03:00 UTC Monday and Tuesday = Sunday and Monday 10pm Central (9pm once daylight saving ends)
-    - cron: "0 3 * * 1,2"
-  workflow_dispatch: {}   # "Run workflow" button on the Actions tab
+    # Every hour. Most runs finish in seconds ("nothing due"); results are pulled in the first hour
+    # after a match's scheduled end, re-checked hourly for 48h, and a full check runs daily at 03:00 UTC.
+    - cron: "23 * * * *"
+  workflow_dispatch: {}   # "Run workflow" button on the Actions tab (always a full run)
 
 permissions:
   contents: write
@@ -25,7 +26,7 @@ jobs:
           python-version: "3.12"
 
       - name: Update ratings
-        run: python pipeline.py
+        run: python pipeline.py ${{ github.event_name == 'schedule' && '--auto' || '' }}
 
       - name: Save results
         run: |
