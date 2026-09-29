@@ -83,11 +83,22 @@
   /* head-to-head */
   #h2h { margin-top: 14px; }
   .h2h-pick { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
-  .h2h-pick label { flex: 1 1 220px; display: flex; flex-direction: column; gap: 4px; font-size: 12px;
-                    text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; }
-  .h2h-pick input { padding: 9px 12px; font-size: 15px; font-family: inherit; font-weight: 400; text-transform: none; letter-spacing: 0;
-                    color: var(--text); border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
-  .h2h-pick input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+  .h2h-pick .field { flex: 1 1 220px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .h2h-pick .lbl { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; }
+  .picker { position: relative; }
+  .picker input { width: 100%; padding: 9px 38px 9px 12px; font-size: 15px; font-family: inherit;
+                  color: var(--text); border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
+  .picker input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+  .chev { position: absolute; right: 3px; top: 3px; bottom: 3px; width: 34px; border: 0; background: none;
+          color: var(--muted); font-size: 16px; cursor: pointer; border-radius: 6px; }
+  .chev:hover { background: var(--surface); color: var(--text); }
+  .menu { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 5; max-height: 320px; overflow-y: auto;
+          margin: 0; padding: 4px 0; list-style: none; background: var(--bg); border: 1px solid var(--border);
+          border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+  .menu li { display: flex; justify-content: space-between; gap: 10px; padding: 8px 12px; cursor: pointer; }
+  .menu li.active { background: var(--row-hover); }
+  .menu li .m { color: var(--muted); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .menu li.none { color: var(--muted); cursor: default; }
   .swap { flex: 0 0 auto; height: 40px; width: 40px; font-size: 18px; border: 1px solid var(--border); border-radius: 8px;
           background: var(--bg); cursor: pointer; color: var(--muted); }
   .swap:hover { border-color: var(--accent); color: var(--accent); }
@@ -132,9 +143,23 @@
 
   <section id="h2h" hidden>
     <div class="h2h-pick">
-      <label>Shooter A<input id="h2h-a" list="shooter-list" autocomplete="off" placeholder="Name or ID"></label>
+      <div class="field">
+        <label class="lbl" for="h2h-a">Shooter A</label>
+        <div class="picker">
+          <input id="h2h-a" autocomplete="off" placeholder="Type a name or ID" role="combobox" aria-expanded="false">
+          <button type="button" class="chev" tabindex="-1" aria-label="Show shooters">▾</button>
+          <ul class="menu" role="listbox" hidden></ul>
+        </div>
+      </div>
       <button type="button" class="swap" id="h2h-swap" title="Swap shooters" aria-label="Swap shooters">⇄</button>
-      <label>Shooter B<input id="h2h-b" list="shooter-list" autocomplete="off" placeholder="Name or ID"></label>
+      <div class="field">
+        <label class="lbl" for="h2h-b">Shooter B</label>
+        <div class="picker">
+          <input id="h2h-b" autocomplete="off" placeholder="Type a name or ID" role="combobox" aria-expanded="false">
+          <button type="button" class="chev" tabindex="-1" aria-label="Show shooters">▾</button>
+          <ul class="menu" role="listbox" hidden></ul>
+        </div>
+      </div>
     </div>
     <div class="h2h-basis">
       <select id="h2h-basis" aria-label="Ratings to compare">
@@ -142,7 +167,6 @@
         <option value="mulligan">Mulligan ratings</option>
       </select>
     </div>
-    <datalist id="shooter-list"></datalist>
     <div id="h2h-out"></div>
   </section>
 
@@ -450,11 +474,64 @@
   qEl.addEventListener("input", function () { shown = PAGE; render(); });
   minEl.addEventListener("change", function () { shown = PAGE; render(); });
   moreEl.addEventListener("click", function () { shown += PAGE * 2; render(); });
-  [aEl, bEl].forEach(function (e) {
-    e.addEventListener("change", renderH2H);
-    e.addEventListener("input", function () { if (resolve(e.value)) renderH2H(); });
-    e.addEventListener("focus", function () { e.select(); });
-  });
+  // Searchable shooter dropdown: click to see shooters by rank, type to filter by name or ID
+  function makePicker(input) {
+    var box = input.parentNode, menu = box.querySelector(".menu"), chev = box.querySelector(".chev");
+    var items = [], active = -1;
+    function find(q) {
+      q = q.trim().toLowerCase().replace(/^#/, "");
+      var out = [];
+      for (var i = 0; i < data.shooters.length && out.length < 50; i++) {
+        var s = data.shooters[i];
+        if (!q || s.name.toLowerCase().indexOf(q) !== -1 || String(s.id).indexOf(q) === 0) out.push(s);
+      }
+      return out;
+    }
+    function highlight(i) {
+      var lis = menu.children;
+      if (active >= 0 && lis[active]) lis[active].classList.remove("active");
+      active = i;
+      if (active >= 0 && lis[active]) { lis[active].classList.add("active"); lis[active].scrollIntoView({ block: "nearest" }); }
+    }
+    function show(q) {
+      if (!data) return;
+      items = find(q); active = -1; menu.textContent = "";
+      if (!items.length) menu.appendChild(el("li", "none", "No shooters found"));
+      items.forEach(function (s, i) {
+        var li = el("li");
+        li.setAttribute("role", "option");
+        li.appendChild(el("span", "", s.name));
+        li.appendChild(el("span", "m", "#" + s.rank + " · " + s.rating.toFixed(1) + " · ID " + s.id));
+        li.addEventListener("mousedown", function (e) { e.preventDefault(); pick(s); });
+        li.addEventListener("mousemove", function () { if (active !== i) highlight(i); });
+        menu.appendChild(li);
+      });
+      if (items.length) highlight(0);
+      menu.hidden = false; input.setAttribute("aria-expanded", "true");
+    }
+    function hide() { menu.hidden = true; input.setAttribute("aria-expanded", "false"); }
+    function pick(s) { input.value = label(s); hide(); input.blur(); renderH2H(); }
+    input.addEventListener("focus", function () { input.select(); show(""); });
+    input.addEventListener("input", function () { show(input.value); });
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        if (menu.hidden) return show("");
+        highlight(Math.max(0, Math.min(items.length - 1, active + (e.key === "ArrowDown" ? 1 : -1))));
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (!menu.hidden && active >= 0) pick(items[active]); else { hide(); renderH2H(); }
+      } else if (e.key === "Escape") { hide(); }
+    });
+    input.addEventListener("blur", function () { hide(); renderH2H(); });
+    chev.addEventListener("mousedown", function (e) {
+      e.preventDefault();
+      if (!menu.hidden) return hide();
+      if (document.activeElement !== input) input.focus(); else show("");
+    });
+  }
+  makePicker(aEl);
+  makePicker(bEl);
   basisEl.addEventListener("change", renderH2H);
   $("h2h-swap").addEventListener("click", function () { var t = aEl.value; aEl.value = bEl.value; bEl.value = t; renderH2H(); });
 
@@ -469,8 +546,7 @@
   fetch("leaderboard.json", { cache: "no-cache" }).then(function (r) { return r.json(); }).then(function (d) {
     data = d;
     d.matches.forEach(function (m) { matchById[m.id] = m; });
-    var list = $("shooter-list");
-    d.shooters.forEach(function (s) { byId[s.id] = s; var o = document.createElement("option"); o.value = label(s); list.appendChild(o); });
+    d.shooters.forEach(function (s) { byId[s.id] = s; });
     var through = d.through ? " · through " + d.through.name + " (" + fmtDate(d.through.end + " 00:00:00", true) + ")" : "";
     $("meta").textContent = d.season + " · " + d.match_count + " matches" + through + " · updated " + fmtDate(d.updated);
     if (view === "h2h") initH2H(startHash); else render();
