@@ -1,0 +1,23 @@
+{
+ "season_label": "2026 PRS Pro Series",
+ "series_id": 1,
+ "season_start": "2025-11-03",
+ "season_end": "2026-11-30",
+ "min_points": 5000,
+ "drop_disqualified": false,
+ "refresh_days": 14,
+
+ "exclude_matches": {},
+
+ "aliases": {
+  "Morgan King": "Morgun King",
+  "Dan Hereid": "Daniel Hereid",
+  "Brad Wright 1": "Brad Wright",
+  "Matt Huizenga": "Matthew Huizenga",
+  "Havid Doff": "David Hoff"
+ },
+
+ "id_links": {},
+
+ "not_same_person": []
+}

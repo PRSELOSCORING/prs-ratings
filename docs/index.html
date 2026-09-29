@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PRS Pro Series Ratings</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #f6f7f9;
+    --border: #e3e6ea;
+    --text: #16191d;
+    --muted: #5f6873;
+    --accent: #b4461b;
+    --up: #1d7a46;
+    --down: #b3261e;
+    --row-hover: #fbf4f0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 20px 16px 32px; }
+  header h1 { margin: 0; font-size: 26px; letter-spacing: -0.01em; }
+  header p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+
+  .tabs { display: inline-flex; margin-top: 18px; border: 1px solid var(--border); border-radius: 9px; padding: 3px; background: var(--surface); }
+  .tabs button {
+    font: inherit; font-weight: 600; font-size: 14px; border: 0; background: none; color: var(--muted);
+    padding: 7px 16px; border-radius: 6px; cursor: pointer;
+  }
+  .tabs button[aria-selected="true"] { background: var(--bg); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .tab-note { color: var(--muted); font-size: 13px; margin: 10px 0 0; }
+
+  .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 14px 0 12px; }
+  .controls input {
+    flex: 1 1 240px; padding: 9px 12px; font: inherit; color: inherit;
+    border: 1px solid var(--border); border-radius: 8px; background: var(--bg);
+  }
+  .controls input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+  .controls select { padding: 9px 10px; font: inherit; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: inherit; }
+  .count { color: var(--muted); font-size: 13px; }
+
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  thead th {
+    position: sticky; top: 0; background: var(--surface); z-index: 1;
+    text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .04em;
+    color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  th.num, td.num { text-align: right; }
+  tbody tr.row { cursor: pointer; }
+  tbody tr.row:hover { background: var(--row-hover); }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  td.rank { width: 56px; color: var(--muted); font-weight: 600; }
+  tr.top3 td.rank { color: var(--accent); }
+  .name { font-weight: 600; }
+  .sid { display: block; color: var(--muted); font-size: 12px; font-weight: 400; }
+  .rating { font-weight: 700; }
+  .up { color: var(--up); } .down { color: var(--down); } .flat { color: var(--muted); }
+  .text { color: var(--muted); font-size: 13px; max-width: 300px; }
+
+  tr.detail td { background: var(--surface); padding: 10px 14px 14px; }
+  .hist { width: 100%; font-size: 13px; }
+  .hist th { position: static; background: none; padding: 4px 6px; border-bottom: 1px solid var(--border); }
+  .hist td { padding: 5px 6px; border-bottom: 1px solid var(--border); }
+  .hist tr.dropped td { text-decoration: line-through; color: var(--muted); }
+  .hist tr.dropped td.tag { text-decoration: none; }
+  .pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 99px;
+          background: #f3e2d9; color: var(--accent); text-decoration: none; margin-left: 6px; }
+
+  .more { display: block; margin: 16px auto 0; padding: 9px 18px; font: inherit; border: 1px solid var(--border);
+          border-radius: 8px; background: var(--bg); cursor: pointer; }
+  .more:hover { border-color: var(--accent); color: var(--accent); }
+  .more[hidden] { display: none; }
+  footer { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }
+  footer h2 { font-size: 14px; color: var(--text); margin: 0 0 6px; }
+  footer ul { margin: 0 0 10px; padding-left: 18px; }
+  footer a { color: var(--accent); }
+  .empty { padding: 28px 10px; text-align: center; color: var(--muted); }
+  .table-wrap { overflow-x: auto; }
+  @media (max-width: 700px) {
+    .wide { display: none; }
+    header h1 { font-size: 22px; }
+    td, thead th { padding-left: 6px; padding-right: 6px; }
+    thead th { white-space: normal; }
+    tr.detail td { padding: 8px 6px 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>PRS Pro Series Ratings</h1>
+    <p id="meta">Loading…</p>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-ratings" aria-selected="true">Ratings</button>
+    <button role="tab" id="tab-mulligan" aria-selected="false">Mulligan</button>
+  </div>
+  <p class="tab-note" id="note"></p>
+
+  <div class="controls">
+    <input id="q" type="search" placeholder="Search shooter name or ID" aria-label="Search shooter name or ID">
+    <select id="min" aria-label="Minimum matches this season">
+      <option value="1">All shooters</option>
+      <option value="2">2+ matches</option>
+      <option value="3">3+ matches</option>
+      <option value="5">5+ matches</option>
+    </select>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr id="head"></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  <button class="more" id="more" hidden>Show more</button>
+
+  <footer>
+    <h2>How the ratings work</h2>
+    <ul>
+      <li>Elo-style rating: every shooter at a match is compared with every other shooter there. Beating higher-rated shooters earns more; losing to lower-rated shooters costs more.</li>
+      <li>Spread 133, 2 points per head-to-head, capped at +50 / −25 per match. New shooters start at 500.</li>
+      <li>Finishing order comes from Impact Scoring, including tiebreakers. Shooters with fewer than 50 impacts are left out of that match.</li>
+      <li><strong>Mulligan:</strong> each shooter's season replayed without the one match that cost them the most points, against the same opponents at their real ratings. Needs 2+ matches this season; nobody else's rating changes.</li>
+      <li>Click a shooter to see their match-by-match history. Shooter ID is their Impact Scoring ID.</li>
+    </ul>
+    <p>Results from Impact Scoring. Updated automatically Sunday and Monday nights. <a href="leaderboard.csv" download>Download CSV</a></p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var PAGE = 100;
+  var data = null, history = null, matchById = {}, shown = PAGE, open = null, view = "ratings";
+  var $ = function (id) { return document.getElementById(id); };
+  var rowsEl = $("rows"), headEl = $("head"), qEl = $("q"), minEl = $("min"), moreEl = $("more"), countEl = $("count");
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function signed(v) { return (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(1); }
+  function tone(v) { return v > 0 ? "up" : v < 0 ? "down" : "flat"; }
+  function fmtDate(s, calendarDay) {
+    // calendarDay: a plain match date (show as-is); otherwise a UTC timestamp (show in the viewer's time zone)
+    var d = new Date(s.replace(" ", "T") + "Z");
+    return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric",
+                                             timeZone: calendarDay ? "UTC" : undefined });
+  }
+  function matchName(id) { return id == null ? "" : (matchById[id] || {}).name || ""; }
+
+  // Column definitions per tab: [header, cell class, value(s)]
+  var VIEWS = {
+    ratings: {
+      note: "Current ratings for the season.",
+      rank: function (s) { return s.rank; },
+      cols: [
+        ["Rating", "num rating", function (s) { return s.rating.toFixed(1); }],
+        ["Last match", "num", function (s) { return signed(s.last_change); }, function (s) { return tone(s.last_change); }],
+        ["Season", "num", function (s) { return signed(s.change); }, function (s) { return tone(s.change); }],
+        ["Matches", "num wide", function (s) { return s.matches; }],
+        ["Most recent match", "text wide", function (s) { return s.last; }]
+      ]
+    },
+    mulligan: {
+      note: "Where each shooter would be with their worst match of the season thrown out.",
+      rank: function (s) { return s.mulligan_rank; },
+      cols: [
+        ["Mulligan", "num rating", function (s) { return s.mulligan.toFixed(1); }],
+        ["Gain", "num", function (s) { return signed(s.mulligan - s.rating); }, function (s) { return tone(s.mulligan - s.rating); }],
+        ["Real rank", "num", function (s) { return s.rank; }],
+        ["Matches", "num wide", function (s) { return s.matches; }],
+        ["Match thrown out", "text wide", function (s) { return matchName(s.mulligan_drop) || "—"; }]
+      ]
+    }
+  };
+
+  function sorted() {
+    var v = VIEWS[view];
+    return data.shooters.slice().sort(function (a, b) { return v.rank(a) - v.rank(b); });
+  }
+  function filtered() {
+    var q = qEl.value.trim().toLowerCase(), min = +minEl.value;
+    return sorted().filter(function (s) {
+      if (s.matches < min) return false;
+      if (!q) return true;
+      return s.name.toLowerCase().indexOf(q) !== -1 || String(s.id) === q.replace(/^#/, "");
+    });
+  }
+
+  function renderHead() {
+    headEl.textContent = "";
+    headEl.appendChild(el("th", "", "Rank"));
+    headEl.appendChild(el("th", "", "Shooter"));
+    VIEWS[view].cols.forEach(function (c) { headEl.appendChild(el("th", c[1].replace(/rating|text/g, "").trim(), c[0])); });
+  }
+
+  function render() {
+    var v = VIEWS[view], list = filtered(), ncol = v.cols.length + 2;
+    rowsEl.textContent = "";
+    open = null;
+    if (!list.length) {
+      var tr0 = el("tr"), td0 = el("td", "empty", "No shooters match that search.");
+      td0.colSpan = ncol; tr0.appendChild(td0); rowsEl.appendChild(tr0);
+    }
+    list.slice(0, shown).forEach(function (s) {
+      var rank = v.rank(s), tr = el("tr", "row" + (rank <= 3 ? " top3" : ""));
+      tr.appendChild(el("td", "rank", rank));
+      var who = el("td"); who.appendChild(el("span", "name", s.name)); who.appendChild(el("span", "sid", "ID " + s.id));
+      tr.appendChild(who);
+      v.cols.forEach(function (c) { tr.appendChild(el("td", c[1] + (c[3] ? " " + c[3](s) : ""), c[2](s))); });
+      tr.addEventListener("click", function () { toggle(tr, s, ncol); });
+      rowsEl.appendChild(tr);
+    });
+    moreEl.hidden = list.length <= shown;
+    countEl.textContent = list.length === data.shooters.length
+      ? data.shooters.length.toLocaleString() + " shooters"
+      : list.length.toLocaleString() + " of " + data.shooters.length.toLocaleString() + " shooters";
+  }
+
+  function toggle(tr, s, ncol) {
+    if (open) { var was = open.shooter; open.row.remove(); open = null; if (was === s.id) return; }
+    var detail = el("tr", "detail"), td = el("td"); td.colSpan = ncol; detail.appendChild(td);
+    tr.after(detail);
+    open = { row: detail, shooter: s.id };
+    var fill = function () {
+      var h = history[String(s.id)] || [];
+      var t = el("table", "hist"), head = el("tr");
+      ["Date", "Match", "Place", "Before", "After", "Change"].forEach(function (c, i) {
+        head.appendChild(el("th", (i >= 2 ? "num" : "") + (i === 3 ? " wide" : ""), c));
+      });
+      var thead = el("thead"); thead.appendChild(head); t.appendChild(thead);
+      var tb = el("tbody");
+      h.slice().reverse().forEach(function (r) {
+        var m = matchById[r[0]] || { name: "Match " + r[0], end: "" }, d = r[4] - r[3];
+        var dropped = view === "mulligan" && r[0] === s.mulligan_drop;
+        var row = el("tr", dropped ? "dropped" : "");
+        row.appendChild(el("td", "", m.end ? fmtDate(m.end + " 00:00:00", true) : ""));
+        var mt = el("td", dropped ? "tag" : "");
+        var nm = el("span", "", m.name);
+        if (dropped) nm.style.textDecoration = "line-through";
+        mt.appendChild(nm);
+        if (dropped) mt.appendChild(el("span", "pill", "mulligan"));
+        row.appendChild(mt);
+        row.appendChild(el("td", "num", r[1] + " / " + r[2]));
+        row.appendChild(el("td", "num wide", r[3].toFixed(1)));
+        row.appendChild(el("td", "num", r[4].toFixed(1)));
+        row.appendChild(el("td", "num " + tone(d), signed(d)));
+        tb.appendChild(row);
+      });
+      t.appendChild(tb);
+      td.textContent = "";
+      td.appendChild(el("div", "count", "Started the season at " + s.start.toFixed(1) +
+        (view === "mulligan" && s.mulligan_drop != null
+          ? " · real rating " + s.rating.toFixed(1) + ", with the mulligan " + s.mulligan.toFixed(1) : "")));
+      td.appendChild(t);
+    };
+    if (history) { fill(); return; }
+    td.textContent = "Loading history…";
+    fetch("history.json", { cache: "no-cache" }).then(function (r) { return r.json(); })
+      .then(function (h) { history = h; if (open && open.shooter === s.id) fill(); })
+      .catch(function () { td.textContent = "Couldn't load match history."; });
+  }
+
+  function setView(v) {
+    view = v;
+    $("tab-ratings").setAttribute("aria-selected", v === "ratings");
+    $("tab-mulligan").setAttribute("aria-selected", v === "mulligan");
+    $("note").textContent = VIEWS[v].note;
+    try { window.history.replaceState(null, "", v === "mulligan" ? "#mulligan" : location.pathname); } catch (e) {}
+    shown = PAGE;
+    renderHead();
+    if (data) render();
+  }
+
+  $("tab-ratings").addEventListener("click", function () { setView("ratings"); });
+  $("tab-mulligan").addEventListener("click", function () { setView("mulligan"); });
+  qEl.addEventListener("input", function () { shown = PAGE; render(); });
+  minEl.addEventListener("change", function () { shown = PAGE; render(); });
+  moreEl.addEventListener("click", function () { shown += PAGE * 2; render(); });
+
+  setView(location.hash === "#mulligan" ? "mulligan" : "ratings");
+  fetch("leaderboard.json", { cache: "no-cache" }).then(function (r) { return r.json(); }).then(function (d) {
+    data = d;
+    d.matches.forEach(function (m) { matchById[m.id] = m; });
+    var through = d.through ? " · through " + d.through.name + " (" + fmtDate(d.through.end + " 00:00:00", true) + ")" : "";
+    $("meta").textContent = d.season + " · " + d.match_count + " matches" + through + " · updated " + fmtDate(d.updated);
+    render();
+  }).catch(function () {
+    $("meta").textContent = "Couldn't load the leaderboard. Please try again later.";
+  });
+})();
+</script>
+</body>
+</html>
