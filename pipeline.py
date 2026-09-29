@@ -13,7 +13,7 @@ Update the PRS Pro Series ratings.
 import csv, json, os, sys, time, urllib.request
 from datetime import datetime, timedelta, timezone
 
-from prs_rating_engine import compute_match_ratings, rate_one, NEW_GUY_RATING
+from prs_rating_engine import compute_match_ratings, rate_one, NEW_GUY_RATING, SPREAD, VOLATILITY
 from names import Matcher, key
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -272,6 +272,7 @@ def write_outputs(cfg, shooters, rated, review, spellings, history, name_of):
     os.makedirs(SITE, exist_ok=True)
     board = {"updated": now_str(), "season": cfg["season_label"],
              "through": rated[-1] if rated else None, "match_count": len(rated),
+             "spread": SPREAD, "volatility": VOLATILITY,   # used by the page's head-to-head odds
              "matches": rated, "shooters": shooters}
     # keep the old "updated" time when nothing actually changed, so quiet runs don't touch the site
     path = os.path.join(SITE, "leaderboard.json")

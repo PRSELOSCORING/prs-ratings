@@ -79,6 +79,34 @@
   footer a { color: var(--accent); }
   .empty { padding: 28px 10px; text-align: center; color: var(--muted); }
   .table-wrap { overflow-x: auto; }
+
+  /* head-to-head */
+  #h2h { margin-top: 14px; }
+  .h2h-pick { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+  .h2h-pick label { flex: 1 1 220px; display: flex; flex-direction: column; gap: 4px; font-size: 12px;
+                    text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; }
+  .h2h-pick input { padding: 9px 12px; font-size: 15px; font-family: inherit; font-weight: 400; text-transform: none; letter-spacing: 0;
+                    color: var(--text); border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
+  .h2h-pick input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+  .swap { flex: 0 0 auto; height: 40px; width: 40px; font-size: 18px; border: 1px solid var(--border); border-radius: 8px;
+          background: var(--bg); cursor: pointer; color: var(--muted); }
+  .swap:hover { border-color: var(--accent); color: var(--accent); }
+  .h2h-basis { margin: 10px 0 18px; }
+  .h2h-basis select { padding: 8px 10px; font: inherit; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: inherit; }
+  .h2h-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .h2h-card { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .h2h-card.b { text-align: right; }
+  .h2h-card .who { font-weight: 700; font-size: 17px; }
+  .h2h-card .meta { color: var(--muted); font-size: 13px; }
+  .h2h-card .pct { font-size: 40px; font-weight: 800; line-height: 1.1; margin-top: 8px; font-variant-numeric: tabular-nums; }
+  .h2h-card.fav .pct { color: var(--accent); }
+  .bar { display: flex; height: 10px; border-radius: 99px; overflow: hidden; margin: 14px 0 6px; background: var(--surface); }
+  .bar .a { background: var(--accent); }
+  .bar .b { background: #c9ced5; }
+  .h2h-say { margin: 12px 0 0; }
+  .h2h-sub { font-size: 14px; margin: 22px 0 6px; }
+  .h2h-note { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
+  .h2h-empty { color: var(--muted); padding: 18px 0; }
   @media (max-width: 700px) {
     .wide { display: none; }
     header h1 { font-size: 22px; }
@@ -98,9 +126,27 @@
   <div class="tabs" role="tablist">
     <button role="tab" id="tab-ratings" aria-selected="true">Ratings</button>
     <button role="tab" id="tab-mulligan" aria-selected="false">Mulligan</button>
+    <button role="tab" id="tab-h2h" aria-selected="false">Head-to-Head</button>
   </div>
   <p class="tab-note" id="note"></p>
 
+  <section id="h2h" hidden>
+    <div class="h2h-pick">
+      <label>Shooter A<input id="h2h-a" list="shooter-list" autocomplete="off" placeholder="Name or ID"></label>
+      <button type="button" class="swap" id="h2h-swap" title="Swap shooters" aria-label="Swap shooters">⇄</button>
+      <label>Shooter B<input id="h2h-b" list="shooter-list" autocomplete="off" placeholder="Name or ID"></label>
+    </div>
+    <div class="h2h-basis">
+      <select id="h2h-basis" aria-label="Ratings to compare">
+        <option value="rating">Current ratings</option>
+        <option value="mulligan">Mulligan ratings</option>
+      </select>
+    </div>
+    <datalist id="shooter-list"></datalist>
+    <div id="h2h-out"></div>
+  </section>
+
+  <div id="board">
   <div class="controls">
     <input id="q" type="search" placeholder="Search shooter name or ID" aria-label="Search shooter name or ID">
     <select id="min" aria-label="Minimum matches this season">
@@ -119,6 +165,7 @@
     </table>
   </div>
   <button class="more" id="more" hidden>Show more</button>
+  </div>
 
   <footer>
     <h2>How the ratings work</h2>
@@ -127,6 +174,7 @@
       <li>Spread 133, 2 points per head-to-head, capped at +50 / −25 per match. New shooters start at 500.</li>
       <li>Finishing order comes from Impact Scoring, including tiebreakers. Shooters with fewer than 50 impacts are left out of that match.</li>
       <li><strong>Mulligan:</strong> each shooter's season replayed without the one match that cost them the most points, against the same opponents at their real ratings. Needs 2+ matches this season; nobody else's rating changes.</li>
+      <li><strong>Head-to-Head:</strong> the chance one shooter finishes ahead of the other, from the same formula the ratings use: 1 / (1 + 10<sup>(rating B − rating A) / 133</sup>). A 133-point edge is about 10 to 1.</li>
       <li>Click a shooter to see their match-by-match history. Shooter ID is their Impact Scoring ID.</li>
     </ul>
     <p>Results from Impact Scoring. Updated automatically within about an hour of each match's scheduled end. <a href="leaderboard.csv" download>Download CSV</a></p>
@@ -264,16 +312,132 @@
     };
     if (history) { fill(); return; }
     td.textContent = "Loading history…";
-    fetch("history.json", { cache: "no-cache" }).then(function (r) { return r.json(); })
-      .then(function (h) { history = h; if (open && open.shooter === s.id) fill(); })
-      .catch(function () { td.textContent = "Couldn't load match history."; });
+    loadHistory(function () { if (open && open.shooter === s.id) fill(); },
+                function () { td.textContent = "Couldn't load match history."; });
   }
+
+  var historyWaiters = null;
+  function loadHistory(done, fail) {
+    if (history) return done();
+    if (historyWaiters) return historyWaiters.push(done);
+    historyWaiters = [done];
+    fetch("history.json", { cache: "no-cache" }).then(function (r) { return r.json(); })
+      .then(function (h) { history = h; var w = historyWaiters; historyWaiters = null; w.forEach(function (f) { f(); }); })
+      .catch(function () { historyWaiters = null; if (fail) fail(); });
+  }
+
+  // ---------------------------------------------------------------- head-to-head
+  var byId = {}, aEl = $("h2h-a"), bEl = $("h2h-b"), basisEl = $("h2h-basis");
+
+  function label(s) { return s.name + " · ID " + s.id; }
+  function resolve(text) {
+    var t = (text || "").trim();
+    if (!t) return null;
+    var m = t.match(/ID\s*(\d+)\s*$/i) || t.match(/^#?(\d+)$/);
+    if (m) return byId[m[1]] || null;
+    var lower = t.toLowerCase();
+    for (var i = 0; i < data.shooters.length; i++) if (data.shooters[i].name.toLowerCase() === lower) return data.shooters[i];
+    return null;
+  }
+  function pAhead(ra, rb) { return 1 / (1 + Math.pow(10, (rb - ra) / data.spread)); }
+  function pct(p) { var v = p * 100; return (v < 1 || v > 99 ? v.toFixed(1) : Math.round(v)) + "%"; }
+
+  function card(s, p, side, basis) {
+    var c = el("div", "h2h-card " + side + (p > 0.5 ? " fav" : ""));
+    c.appendChild(el("div", "who", s.name));
+    c.appendChild(el("div", "meta", "ID " + s.id + " · #" + (basis === "mulligan" ? s.mulligan_rank : s.rank) +
+      " · " + s[basis].toFixed(1) + (basis === "mulligan" ? " mulligan" : "")));
+    c.appendChild(el("div", "pct", pct(p)));
+    c.appendChild(el("div", "meta", "chance to finish ahead"));
+    return c;
+  }
+
+  function renderH2H() {
+    var out = $("h2h-out");
+    out.textContent = "";
+    if (!data) return;
+    var A = resolve(aEl.value), B = resolve(bEl.value);
+    if (!A || !B) {
+      out.appendChild(el("p", "h2h-empty", !aEl.value.trim() || !bEl.value.trim()
+        ? "Pick two shooters to compare." : "Couldn't find " + (!A ? "shooter A" : "shooter B") + ". Pick a name from the list."));
+      return;
+    }
+    if (A.id === B.id) { out.appendChild(el("p", "h2h-empty", "Pick two different shooters.")); return; }
+    try { window.history.replaceState(null, "", "#h2h=" + A.id + "," + B.id); } catch (e) {}
+
+    var basis = basisEl.value, ra = A[basis], rb = B[basis], p = pAhead(ra, rb);
+    var cards = el("div", "h2h-cards");
+    cards.appendChild(card(A, p, "a", basis));
+    cards.appendChild(card(B, 1 - p, "b", basis));
+    out.appendChild(cards);
+
+    var bar = el("div", "bar"), ba = el("div", "a"), bb = el("div", "b");
+    ba.style.width = (p * 100) + "%"; bb.style.width = ((1 - p) * 100) + "%";
+    bar.appendChild(ba); bar.appendChild(bb); out.appendChild(bar);
+
+    var fav = p >= 0.5 ? A : B, dog = p >= 0.5 ? B : A, pf = Math.max(p, 1 - p);
+    var gap = Math.abs(ra - rb);
+    var say = Math.abs(p - 0.5) < 0.005
+      ? "Dead even: the ratings are " + gap.toFixed(1) + " points apart."
+      : fav.name + " is expected to finish ahead of " + dog.name + " in about " + Math.round(pf * 100) +
+        " of 100 matches (" + (pf / (1 - pf) >= 10 ? Math.round(pf / (1 - pf)) : (pf / (1 - pf)).toFixed(1)) +
+        " to 1), a " + gap.toFixed(1) + "-point rating edge.";
+    out.appendChild(el("p", "h2h-say", say));
+
+    var k = data.volatility;
+    out.appendChild(el("p", "h2h-note",
+      "Rating on the line from this one pairing at a match: if " + A.name + " finishes ahead, " + A.name + " gains " +
+      (k * (1 - p)).toFixed(2) + " and " + B.name + " loses the same; if " + B.name + " finishes ahead, " + B.name +
+      " gains " + (k * p).toFixed(2) + ". (A match adds up one of these for every shooter in the field.)"));
+
+    out.appendChild(el("h3", "h2h-sub", "This season"));
+    var meet = el("div");
+    out.appendChild(meet);
+    meet.appendChild(el("p", "h2h-note", "Loading…"));
+    loadHistory(function () {
+      meet.textContent = "";
+      var hb = {};
+      (history[String(B.id)] || []).forEach(function (r) { hb[r[0]] = r; });
+      var both = (history[String(A.id)] || []).filter(function (r) { return hb[r[0]]; });
+      if (!both.length) { meet.appendChild(el("p", "h2h-note", "They haven't shot the same match this season.")); return; }
+      var aw = both.filter(function (r) { return r[1] < hb[r[0]][1]; }).length;
+      meet.appendChild(el("p", "", A.name + " " + aw + " – " + (both.length - aw) + " " + B.name +
+        " in " + both.length + " match" + (both.length === 1 ? "" : "es") + " together."));
+      var t = el("table", "hist"), head = el("tr");
+      ["Date", "Match", A.name, B.name].forEach(function (c, i) { head.appendChild(el("th", i >= 2 ? "num" : "", c)); });
+      var th = el("thead"); th.appendChild(head); t.appendChild(th);
+      var tb = el("tbody");
+      both.slice().reverse().forEach(function (r) {
+        var m = matchById[r[0]] || { name: "Match " + r[0], end: "" }, rb2 = hb[r[0]], row = el("tr");
+        row.appendChild(el("td", "", m.end ? fmtDate(m.end + " 00:00:00", true) : ""));
+        row.appendChild(el("td", "", m.name));
+        row.appendChild(el("td", "num" + (r[1] < rb2[1] ? " up" : ""), r[1] + " / " + r[2]));
+        row.appendChild(el("td", "num" + (rb2[1] < r[1] ? " up" : ""), rb2[1] + " / " + rb2[2]));
+        tb.appendChild(row);
+      });
+      t.appendChild(tb);
+      meet.appendChild(t);
+    }, function () { meet.textContent = "Couldn't load match history."; });
+  }
+
+  function initH2H(hash) {
+    var m = /^#h2h=(\d+),(\d+)$/.exec(hash || "");
+    var A = m && byId[m[1]], B = m && byId[m[2]];
+    if (!aEl.value) aEl.value = label(A || data.shooters[0]);
+    if (!bEl.value) bEl.value = label(B || data.shooters[1]);
+    renderH2H();
+  }
+
+  // ---------------------------------------------------------------- tabs
+  var NOTES = { h2h: "Pick any two shooters to see their odds of finishing ahead of each other." };
 
   function setView(v) {
     view = v;
-    $("tab-ratings").setAttribute("aria-selected", v === "ratings");
-    $("tab-mulligan").setAttribute("aria-selected", v === "mulligan");
-    $("note").textContent = VIEWS[v].note;
+    ["ratings", "mulligan", "h2h"].forEach(function (t) { $("tab-" + t).setAttribute("aria-selected", v === t); });
+    $("note").textContent = v === "h2h" ? NOTES.h2h : VIEWS[v].note;
+    $("h2h").hidden = v !== "h2h";
+    $("board").hidden = v === "h2h";
+    if (v === "h2h") { if (data) initH2H(location.hash); return; }
     try { window.history.replaceState(null, "", v === "mulligan" ? "#mulligan" : location.pathname); } catch (e) {}
     shown = PAGE;
     renderHead();
@@ -282,17 +446,34 @@
 
   $("tab-ratings").addEventListener("click", function () { setView("ratings"); });
   $("tab-mulligan").addEventListener("click", function () { setView("mulligan"); });
+  $("tab-h2h").addEventListener("click", function () { setView("h2h"); });
   qEl.addEventListener("input", function () { shown = PAGE; render(); });
   minEl.addEventListener("change", function () { shown = PAGE; render(); });
   moreEl.addEventListener("click", function () { shown += PAGE * 2; render(); });
+  [aEl, bEl].forEach(function (e) {
+    e.addEventListener("change", renderH2H);
+    e.addEventListener("input", function () { if (resolve(e.value)) renderH2H(); });
+    e.addEventListener("focus", function () { e.select(); });
+  });
+  basisEl.addEventListener("change", renderH2H);
+  $("h2h-swap").addEventListener("click", function () { var t = aEl.value; aEl.value = bEl.value; bEl.value = t; renderH2H(); });
 
-  setView(location.hash === "#mulligan" ? "mulligan" : "ratings");
+  function viewFromHash(h) { return h === "#mulligan" ? "mulligan" : h.indexOf("#h2h") === 0 ? "h2h" : "ratings"; }
+  window.addEventListener("hashchange", function () {
+    var h = location.hash, m = /^#h2h=(\d+),(\d+)$/.exec(h);
+    if (m && data) { aEl.value = ""; bEl.value = ""; }
+    setView(viewFromHash(h));
+  });
+  var startHash = location.hash;
+  setView(viewFromHash(startHash));
   fetch("leaderboard.json", { cache: "no-cache" }).then(function (r) { return r.json(); }).then(function (d) {
     data = d;
     d.matches.forEach(function (m) { matchById[m.id] = m; });
+    var list = $("shooter-list");
+    d.shooters.forEach(function (s) { byId[s.id] = s; var o = document.createElement("option"); o.value = label(s); list.appendChild(o); });
     var through = d.through ? " · through " + d.through.name + " (" + fmtDate(d.through.end + " 00:00:00", true) + ")" : "";
     $("meta").textContent = d.season + " · " + d.match_count + " matches" + through + " · updated " + fmtDate(d.updated);
-    render();
+    if (view === "h2h") initH2H(startHash); else render();
   }).catch(function () {
     $("meta").textContent = "Couldn't load the leaderboard. Please try again later.";
   });

@@ -36,6 +36,11 @@ matches this season, and a mulligan never lowers a rating.
 
 The leaderboard also shows each shooter's **last match +/−** next to their season change.
 
+**Head-to-Head tab:** pick two shooters to see each one's chance of finishing ahead of the other,
+using the same formula as the ratings (`1 / (1 + 10^((B − A) / 133))`), with current or mulligan
+ratings, the rating points at stake, and every match they've both shot this season. A matchup can be
+shared as a link: `https://prseloscoring.github.io/prs-ratings/#h2h=1073,668` (the two shooter IDs).
+
 ## Checking names (the only regular chore)
 
 When a shooter shows up for the first time, their name is compared to everyone with an existing
