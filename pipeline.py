@@ -8,12 +8,12 @@ Update the PRS Pro Series ratings.
 1. Discover Pro Series matches (series page + profiles of top-rated shooters).
 2. Download results once a match's scheduled end time has passed (re-download recent ones to catch corrections).
 3. Recompute the whole season from data/seed.json, in date order, keyed by Impact Scoring shooter id.
-4. Write docs/leaderboard.json + docs/leaderboard.csv (the website) and data/roster.json + data/name_review.csv.
+4. Write docs/leaderboard.json + docs/history.json (the website) and data/roster.json + data/name_review.csv.
 """
 import csv, json, os, sys, time, urllib.request
 from datetime import datetime, timedelta, timezone
 
-from prs_rating_engine import compute_match_ratings, rate_one, NEW_GUY_RATING, SPREAD, VOLATILITY
+from prs_rating_engine import compute_match_ratings, rate_one, NEW_GUY_RATING, SPREAD
 from names import Matcher, key
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -272,7 +272,7 @@ def write_outputs(cfg, shooters, rated, review, spellings, history, name_of):
     os.makedirs(SITE, exist_ok=True)
     board = {"updated": now_str(), "season": cfg["season_label"],
              "through": rated[-1] if rated else None, "match_count": len(rated),
-             "spread": SPREAD, "volatility": VOLATILITY,   # used by the page's head-to-head odds
+             "spread": SPREAD,   # used by the page's head-to-head odds
              "matches": rated, "shooters": shooters}
     # keep the old "updated" time when nothing actually changed, so quiet runs don't touch the site
     path = os.path.join(SITE, "leaderboard.json")
@@ -281,15 +281,6 @@ def write_outputs(cfg, shooters, rated, review, spellings, history, name_of):
         board["updated"] = old["updated"]
     save(path, board)
     save(os.path.join(SITE, "history.json"), {str(k): v for k, v in history.items()})
-    with open(os.path.join(SITE, "leaderboard.csv"), "w", newline="", encoding="utf-8") as f:
-        w = csv.writer(f)
-        match_name = {m["id"]: m["name"] for m in rated}
-        w.writerow(["Rank", "Shooter ID", "Name", "Rating", "Start of Season", "Season Change", "Matches",
-                    "Last Match", "Last Match Change", "Mulligan Rank", "Mulligan Rating", "Mulligan Match Dropped"])
-        for s in shooters:
-            w.writerow([s["rank"], s["id"], s["name"], s["rating"], s["start"], s["change"], s["matches"],
-                        s["last"], s["last_change"], s["mulligan_rank"], s["mulligan"],
-                        match_name.get(s["mulligan_drop"], "")])
     save(os.path.join(DATA, "roster.json"),
          {str(s): {"name": name_of[s], "spellings": sorted(v)} for s, v in sorted(spellings.items())})
     with open(os.path.join(DATA, "name_review.csv"), "w", newline="", encoding="utf-8") as f:

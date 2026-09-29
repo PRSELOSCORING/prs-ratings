@@ -193,16 +193,13 @@
   </div>
 
   <footer>
-    <h2>How the ratings work</h2>
+    <h2>About</h2>
     <ul>
-      <li>Elo-style rating: every shooter at a match is compared with every other shooter there. Beating higher-rated shooters earns more; losing to lower-rated shooters costs more.</li>
-      <li>Spread 133, 2 points per head-to-head, capped at +50 / −25 per match. New shooters start at 500.</li>
-      <li>Finishing order comes from Impact Scoring, including tiebreakers. Shooters with fewer than 50 impacts are left out of that match.</li>
-      <li><strong>Mulligan:</strong> each shooter's season replayed without the one match that cost them the most points, against the same opponents at their real ratings. Needs 2+ matches this season; nobody else's rating changes.</li>
-      <li><strong>Head-to-Head:</strong> the chance one shooter finishes ahead of the other, from the same formula the ratings use: 1 / (1 + 10<sup>(rating B − rating A) / 133</sup>). A 133-point edge is about 10 to 1.</li>
+      <li><strong>Mulligan:</strong> where each shooter would stand with their worst match of the season thrown out.</li>
+      <li><strong>Head-to-Head:</strong> each shooter's chance of finishing ahead of the other, based on their ratings.</li>
       <li>Click a shooter to see their match-by-match history. Shooter ID is their Impact Scoring ID.</li>
     </ul>
-    <p>Results from Impact Scoring. Updated automatically within about an hour of each match's scheduled end. <a href="leaderboard.csv" download>Download CSV</a></p>
+    <p>Results from Impact Scoring. Updated automatically after each match.</p>
   </footer>
 </div>
 
@@ -408,12 +405,6 @@
         " of 100 matches (" + (pf / (1 - pf) >= 10 ? Math.round(pf / (1 - pf)) : (pf / (1 - pf)).toFixed(1)) +
         " to 1), a " + gap.toFixed(1) + "-point rating edge.";
     out.appendChild(el("p", "h2h-say", say));
-
-    var k = data.volatility;
-    out.appendChild(el("p", "h2h-note",
-      "Rating on the line from this one pairing at a match: if " + A.name + " finishes ahead, " + A.name + " gains " +
-      (k * (1 - p)).toFixed(2) + " and " + B.name + " loses the same; if " + B.name + " finishes ahead, " + B.name +
-      " gains " + (k * p).toFixed(2) + ". (A match adds up one of these for every shooter in the field.)"));
 
     out.appendChild(el("h3", "h2h-sub", "This season"));
     var meet = el("div");

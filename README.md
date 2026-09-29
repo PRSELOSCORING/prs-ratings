@@ -81,5 +81,5 @@ The next run (or **Run workflow**) recalculates everything with the fix.
 ## New season
 
 1. Run `python tools/seed_from_workbook.py "<workbook>.xlsx" "<column name>"`, or copy the final
-   ratings from `docs/leaderboard.csv` into a new seed.
+   ratings from `docs/leaderboard.json` into a new seed.
 2. Update `season_label`, `season_start` and `season_end` in `data/config.json`.
