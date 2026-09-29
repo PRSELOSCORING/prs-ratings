@@ -95,7 +95,8 @@
   .menu { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 5; max-height: 320px; overflow-y: auto;
           margin: 0; padding: 4px 0; list-style: none; background: var(--bg); border: 1px solid var(--border);
           border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.12); }
-  .menu li { display: flex; justify-content: space-between; gap: 10px; padding: 8px 12px; cursor: pointer; }
+  .menu li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 11px 12px;
+             min-height: 44px; cursor: pointer; }
   .menu li.active { background: var(--row-hover); }
   .menu li .m { color: var(--muted); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .menu li.none { color: var(--muted); cursor: default; }
@@ -146,7 +147,7 @@
       <div class="field">
         <label class="lbl" for="h2h-a">Shooter A</label>
         <div class="picker">
-          <input id="h2h-a" autocomplete="off" placeholder="Type a name or ID" role="combobox" aria-expanded="false">
+          <input id="h2h-a" autocomplete="off" placeholder="Search name or ID" role="combobox" aria-expanded="false">
           <button type="button" class="chev" tabindex="-1" aria-label="Show shooters">▾</button>
           <ul class="menu" role="listbox" hidden></ul>
         </div>
@@ -155,7 +156,7 @@
       <div class="field">
         <label class="lbl" for="h2h-b">Shooter B</label>
         <div class="picker">
-          <input id="h2h-b" autocomplete="off" placeholder="Type a name or ID" role="combobox" aria-expanded="false">
+          <input id="h2h-b" autocomplete="off" placeholder="Search name or ID" role="combobox" aria-expanded="false">
           <button type="button" class="chev" tabindex="-1" aria-label="Show shooters">▾</button>
           <ul class="menu" role="listbox" hidden></ul>
         </div>
@@ -445,10 +446,11 @@
   }
 
   function initH2H(hash) {
+    // boxes start empty unless the link names a matchup (#h2h=<id>,<id>)
     var m = /^#h2h=(\d+),(\d+)$/.exec(hash || "");
     var A = m && byId[m[1]], B = m && byId[m[2]];
-    if (!aEl.value) aEl.value = label(A || data.shooters[0]);
-    if (!bEl.value) bEl.value = label(B || data.shooters[1]);
+    if (!aEl.value && A) aEl.value = label(A);
+    if (!bEl.value && B) bEl.value = label(B);
     renderH2H();
   }
 
@@ -509,25 +511,48 @@
       if (items.length) highlight(0);
       menu.hidden = false; input.setAttribute("aria-expanded", "true");
     }
+    var PH = input.placeholder, before = "";
     function hide() { menu.hidden = true; input.setAttribute("aria-expanded", "false"); }
-    function pick(s) { input.value = label(s); hide(); input.blur(); renderH2H(); }
-    input.addEventListener("focus", function () { input.select(); show(""); });
+    // Opening empties the box (the current pick shows as the placeholder) so you can type right away;
+    // leaving without picking puts the previous shooter back.
+    function open() {
+      if (!menu.hidden) return;
+      before = input.value;
+      input.placeholder = before || PH;
+      input.value = "";
+      show("");
+    }
+    function close(restore) {
+      hide();
+      var typed = resolve(input.value);
+      input.value = restore || !input.value.trim() ? before : typed ? label(typed) : before;
+      input.placeholder = PH;
+    }
+    function pick(s) { before = label(s); input.value = before; hide(); input.placeholder = PH; input.blur(); renderH2H(); }
+    input.addEventListener("focus", open);
+    input.addEventListener("click", open);   // tapping a box you're already in reopens the list
     input.addEventListener("input", function () { show(input.value); });
     input.addEventListener("keydown", function (e) {
       if (e.key === "ArrowDown" || e.key === "ArrowUp") {
         e.preventDefault();
-        if (menu.hidden) return show("");
+        if (menu.hidden) return open();
         highlight(Math.max(0, Math.min(items.length - 1, active + (e.key === "ArrowDown" ? 1 : -1))));
       } else if (e.key === "Enter") {
         e.preventDefault();
-        if (!menu.hidden && active >= 0) pick(items[active]); else { hide(); renderH2H(); }
-      } else if (e.key === "Escape") { hide(); }
+        if (!menu.hidden && active >= 0 && input.value.trim()) pick(items[active]); else input.blur();
+      } else if (e.key === "Escape") { close(true); input.blur(); }
     });
-    input.addEventListener("blur", function () { hide(); renderH2H(); });
+    input.addEventListener("blur", function () { if (!menu.hidden || input.value !== before) close(false); renderH2H(); });
+    // The arrow opens the list directly, and a tap anywhere else closes it. Neither depends on the
+    // box getting keyboard focus, which phones and embedded pages don't always allow.
     chev.addEventListener("mousedown", function (e) {
       e.preventDefault();
-      if (!menu.hidden) return hide();
-      if (document.activeElement !== input) input.focus(); else show("");
+      if (!menu.hidden) { close(true); input.blur(); renderH2H(); return; }
+      input.focus();
+      open();
+    });
+    document.addEventListener("pointerdown", function (e) {
+      if (!menu.hidden && !box.contains(e.target)) { close(false); input.blur(); renderH2H(); }
     });
   }
   makePicker(aEl);
