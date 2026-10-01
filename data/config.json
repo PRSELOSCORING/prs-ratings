@@ -7,7 +7,7 @@
  "drop_disqualified": false,
  "refresh_days": 14,
 
- "exclude_matches": {},
+ "exclude_matches": {"9819": "GAP Grind is listed as teams; on hold until individual scores can be rated"},
 
  "aliases": {
   "Morgan King": "Morgun King",
