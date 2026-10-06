@@ -27,6 +27,9 @@ If a run fails, GitHub emails you. To run it right away: **Actions** tab → **U
   still count (set `drop_disqualified` to `true` to leave them out).
 - Shooters are tracked by their **Impact Scoring shooter ID**, so name changes and typos don't split
   anyone into two people.
+- **Team matches** (GAP Grind Pro/Am): team results are ignored. Only shooters in the match's "Pro"
+  class count (`team_match_class`), ranked by their own score with ties broken by the skills stage
+  (points, then time), the same way the match posts its individual pro results.
 
 These live in `data/config.json` (`min_points`, `drop_disqualified`).
 

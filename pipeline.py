@@ -138,15 +138,66 @@ def download_results(cfg, known, only=None):
             m["canceled"] = True
             print(f"  canceled: {m['name']}")
             continue
-        shooters = api(f"getLiveScores?matchId={mid}&dividePoints=false").get("shooters") or []
+        live = api(f"getLiveScores?matchId={mid}&dividePoints=false")
+        shooters = live.get("shooters") or []
         if not any((s.get("points") or 0) > 0 for s in shooters):
             print(f"  no results yet: {m['name']}")
             continue
-        slim = sorted(({f: s.get(f) for f in SCORE_FIELDS} for s in shooters), key=lambda s: s["rank"] or 10**9)
+        if any(s.get("shootAsTeam") for s in shooters):
+            slim = team_match_individuals(mid, live, cfg)
+            if slim is None:
+                continue
+        else:
+            slim = sorted(({f: s.get(f) for f in SCORE_FIELDS} for s in shooters), key=lambda s: s["rank"] or 10**9)
         old = json.load(open(path, encoding="utf-8")) if os.path.exists(path) else None
         if slim != old:
             print(f"  {'updated' if old else 'downloaded'} results: {m['name']} ({len(slim)} shooters)")
             save(path, slim)
+
+
+def team_match_individuals(mid, live, cfg):
+    """
+    Team matches (e.g. the GAP Grind Pro/Am): team results are ignored. Only the shooters in the
+    class named in config `team_match_class` (default "Pro") are kept, ranked by their OWN score,
+    ties broken by the skills stage (points, then time) as the match itself does.
+
+    Each team row carries the team total plus the second member's own figures, so the first
+    member's own figures are the difference. Returns rows shaped like a normal match, or None.
+    """
+    keep_class = cfg.get("team_match_class", "Pro").lower()
+    class_id = next((c["id"] for c in live.get("classifications") or [] if (c.get("name") or "").lower() == keep_class), None)
+    stage = next((s for s in live.get("stages") or [] if "skill" in (s.get("name") or "").lower()), None)
+    if class_id is None or stage is None:
+        print(f"  team match {mid}: can't find the '{keep_class}' class or a skills stage; skipped")
+        return None
+    skills = {}
+    for s in api(f"getLiveScores?matchId={mid}&dividePoints=false&stageId={stage['id']}").get("shooters") or []:
+        t = s.get("secondShooter") or {}
+        tp, bp = s.get("points") or 0, t.get("points") or 0
+        tt, bt = s.get("hundredsOfSecond") or 0, t.get("hundredsOfSecond") or 0
+        skills[s["id"]] = (tp - bp, tt - bt)
+        if t.get("id") is not None:
+            skills[t["id"]] = (bp, bt)
+    rows = []
+    for s in live["shooters"]:
+        t = s.get("secondShooter") or {}
+        second_keep = t.get("classificationId") == class_id
+        members = ((s, (s.get("points") or 0) - (t.get("points") or 0), s.get("individualName") or s.get("name"), not second_keep),
+                   (t, t.get("points") or 0, t.get("name"), second_keep))
+        for rec, pts, name, wanted in members:
+            if not wanted or rec.get("id") is None:
+                continue
+            sp, st = skills.get(rec["id"], (0, 0))
+            rows.append({"id": rec["id"], "name": " ".join((name or "").replace("*", "").split()), "points": pts,
+                         "stagesProgressCount": rec.get("stagesProgressCount"), "stagesCount": rec.get("stagesCount") or s.get("stagesCount"),
+                         "matchDisqualified": rec.get("matchDisqualified"), "matchHardDisqualified": rec.get("matchHardDisqualified"),
+                         "divisionName": rec.get("divisionName"), "_tb": (-pts, -sp, st if st > 0 else 10**9)})
+    rows.sort(key=lambda r: r["_tb"])
+    for i, r in enumerate(rows, 1):
+        r["rank"] = i
+        del r["_tb"]
+    print(f"  team match: kept {len(rows)} '{keep_class}' shooters by own score, skills-stage tiebreak")
+    return rows
 
 
 # ---------------------------------------------------------------------------

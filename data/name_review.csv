@@ -7,28 +7,33 @@ shooter_id,impact_name,possible_match,their_rating,why,action,first_seen
 9684,David Wiese,"(same name, different id)",724.9,shared name,kept separate,
 1105,radek novak,"(same name, different id)",656.0,shared name,kept separate,
 1134,John Galati,"(same name, different id)",641.4,shared name,kept separate,
+6431,Sam Henderson,"(same name, different id)",628.9,shared name,kept separate,
 38604,Jose Garza,"(same name, different id)",627.7,shared name,kept separate,
 2926,Michael Olson,"(same name, different id)",612.8,shared name,kept separate,
 8186,Michael Hill,Michael Cahill,600,similar spelling (92%),NOT linked - rated as new shooter,2026 Vortex Vengeance
 8232,Rich Saunders,Richard Saunders,600,nickname / suffix / punctuation,linked automatically - please confirm,2026 Thunder Beast Arms Co King of Coal Canyon
+1200,Brian Lambert,"(same name, different id)",590.4,shared name,kept separate,
 8400,Michael Maron,Michael Martin,579.3,similar spelling (89%),NOT linked - rated as new shooter,Pigg River Precision H.A.M Presented by Leupold Optics
 9066,Dylan DD,Dylan Todd,573.7,similar spelling (89%),NOT linked - rated as new shooter,Pigg River Precision H.A.M Presented by Leupold Optics
-1891,Ryan Hey,"(same name, different id)",572.6,shared name,kept separate,
 10390,Justin Miller,Dustin Miller,570.4,similar spelling (92%),NOT linked - rated as new shooter,2026 Peterson Cartridge Challenge
 10657,CHAD CANTRELL,"(same name, different id)",557.6,shared name,kept separate,
 12008,Brandon Bean,Brandon Bains,554.8,similar spelling (88%),NOT linked - rated as new shooter,2026 Manners Mayhem
+1891,Ryan Hey,"(same name, different id)",550.8,shared name,kept separate,
 28267,Christopher Agamaite,Chris Agamaite,550,nickname / suffix / punctuation,linked automatically - please confirm,2026 Hodgdon Punisher Positional
 2239,Jeremy Barton,Jefrey barton,550,similar spelling (92%),NOT linked - rated as new shooter,2026 Hornady PRC
 11981,Joakim Stigenberg,Joakim Stingenberg,550,similar spelling (97%),NOT linked - rated as new shooter,Foundation Stocks at Twisted Barrel Precision September 19th and 20th 2 day
 9112,John Roberts,jonathan roberts,550,similar spelling (86%),NOT linked - rated as new shooter,Foundation Stocks at Twisted Barrel Precision September 19th and 20th 2 day
 5180,Nathan Toungate,"(same name, different id)",550,shared name,kept separate,
 11158,Kate Estes,"(same name, different id)",550,shared name,kept separate,
+136552,Brian Lambert,"(same name, different id)",550,shared name,kept separate,
 1517,David Wiese,"(same name, different id)",550,shared name,kept separate,
 129276,Hunter Larson,"(same name, different id)",550,shared name,kept separate,
 4395,Michael Olson,"(same name, different id)",550,shared name,kept separate,
+138743,Tanner Cantrell,"(same name, different id)",550,shared name,kept separate,
 13756,Blake Bunch,"(same name, different id)",549.0,shared name,kept separate,
 12023,Chris Wolf,"(same name, different id)",541.2,shared name,kept separate,
 755,Josh Botha,"(same name, different id)",539.7,shared name,kept separate,
+138741,Michael Schwartz,"(same name, different id)",534.0,shared name,kept separate,
 3227,Radek Novak,"(same name, different id)",531.6,shared name,kept separate,
 126097,Chris Wolf,"(same name, different id)",531.1,shared name,kept separate,
 8183,De’Von St Cyr,Devon St Cyr,529.0,similar spelling (96%),NOT linked - rated as new shooter,Sheepdog Showdown
@@ -41,9 +46,11 @@ shooter_id,impact_name,possible_match,their_rating,why,action,first_seen
 126456,Joshua Brandt,Joshua Bandy,516.4,similar spelling (88%),NOT linked - rated as new shooter,THS Steel Challenge presented by TS Customs
 1179,Gus Harding Smith,Oengus Harding Smith,512.6,similar spelling (92%),NOT linked - rated as new shooter,Foundation Stocks at Twisted Barrel Precision September 19th and 20th 2 day
 37520,Nicholas Apone,Nicholas Jones,501.7,similar spelling (86%),NOT linked - rated as new shooter,KRG Windbreaker presented by Defiance Machine
+138764,Sam Henderson,"(same name, different id)",496.0,shared name,kept separate,
 127166,Blake Bunch,"(same name, different id)",493.1,shared name,kept separate,
 12744,David Blake,David Baker,492.8,similar spelling (91%),NOT linked - rated as new shooter,Foundation Stocks at Twisted Barrel Precision September 19th and 20th 2 day
 5886,Curtis Mitchell,Chris Mitchell,489.0,similar spelling (90%),NOT linked - rated as new shooter,Parma Precision Rifle Rumble VIII presented by Burris Optics
+37722,Thorunn Jonsson,Thorunn holm Jonsson,487.7,similar spelling (86%),NOT linked - rated as new shooter,2026 Bushnell GAP Grind Pro/Am
 126097,Christopher Wolf,Chris Wolf,481.1,nickname / suffix / punctuation,linked automatically - please confirm,SAPRL 2026 - Cactus Cup Presented By Lapua - PRS Pro Series (2 Day)
 10602,Brax Schmeling,xBrax Schmeling,475.6,similar spelling (97%),NOT linked - rated as new shooter,Berger Precision Challenge
 34832,Joshua Schiemann,Josh Schiemann,475,nickname / suffix / punctuation,linked automatically - please confirm,Twisted Barrel Precision Scorcher IV by Leupold
@@ -53,7 +60,9 @@ shooter_id,impact_name,possible_match,their_rating,why,action,first_seen
 6489,Luke Keller,Luke Elter,475,similar spelling (86%),NOT linked - rated as new shooter,Foundation Stocks at Twisted Barrel Precision September 19th and 20th 2 day
 129329,TREVOR DAVENPORT,"(same name, different id)",475,shared name,kept separate,
 3309,Randy Ames,"(same name, different id)",475,shared name,kept separate,
+130479,Tanner Cantrell,"(same name, different id)",475,shared name,kept separate,
 12785,Benjamin Wall,Benjamin Walker,469.8,similar spelling (86%),NOT linked - rated as new shooter,KRG Windbreaker presented by Defiance Machine
+4934,Michael Schwartz,"(same name, different id)",466.1,shared name,kept separate,
 4951,B.J. Hill,BJ Hill,457.8,similar spelling (88%),NOT linked - rated as new shooter,K&M Kahles Precision Rifle Competition PRS Pro Series Qualifier
 120589,Hunter Larson,"(same name, different id)",450.6,shared name,kept separate,
 122028,Trevor Davenport,"(same name, different id)",450.6,shared name,kept separate,

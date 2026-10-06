@@ -6,9 +6,7 @@
  "min_points": 5000,
  "drop_disqualified": false,
  "refresh_days": 14,
-
- "exclude_matches": {"9819": "GAP Grind is listed as teams; on hold until individual scores can be rated"},
-
+ "exclude_matches": {},
  "aliases": {
   "Morgan King": "Morgun King",
   "Dan Hereid": "Daniel Hereid",
@@ -16,8 +14,7 @@
   "Matt Huizenga": "Matthew Huizenga",
   "Havid Doff": "David Hoff"
  },
-
  "id_links": {},
-
- "not_same_person": []
+ "not_same_person": [],
+ "team_match_class": "Pro"
 }
