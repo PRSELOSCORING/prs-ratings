@@ -61,6 +61,22 @@
   .text { color: var(--muted); font-size: 13px; max-width: 300px; }
 
   tr.detail td { background: var(--surface); padding: 10px 14px 14px; }
+  .chart { position: relative; margin: 8px 0 14px; }
+  .chart svg { display: block; width: 100%; height: 200px; overflow: visible; font-size: 11px; }
+  .chart .grid { stroke: var(--border); stroke-width: 1; }
+  .chart .axis { fill: var(--muted); }
+  .chart .line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .chart .pt { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+  .chart .pt.start { fill: var(--surface); stroke: var(--accent); }
+  .chart .pt.dropped { fill: var(--surface); stroke: var(--muted); }
+  .chart .hit { fill: transparent; cursor: crosshair; }
+  .chart .cross { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+  .chart .focus { fill: var(--accent); stroke: var(--bg); stroke-width: 2; }
+  .chart .tip { position: absolute; top: 4px; left: 0; pointer-events: none; background: var(--bg); border: 1px solid var(--border);
+                border-radius: 8px; padding: 6px 9px; font-size: 12px; line-height: 1.35; box-shadow: 0 4px 14px rgba(0,0,0,.1); white-space: nowrap; }
+  .chart .tip b { font-weight: 700; }
+  .chart .tip .m { color: var(--muted); }
+  .chart-title { font-size: 12px; color: var(--muted); margin: 0 0 2px; }
   .hist { width: 100%; font-size: 13px; }
   .hist th { position: static; background: none; padding: 4px 6px; border-bottom: 1px solid var(--border); }
   .hist td { padding: 5px 6px; border-bottom: 1px solid var(--border); }
@@ -330,12 +346,94 @@
       td.appendChild(el("div", "count", "Started the season at " + s.start.toFixed(1) +
         (view === "mulligan" && s.mulligan_drop != null
           ? " · real rating " + s.rating.toFixed(1) + ", with the mulligan " + s.mulligan.toFixed(1) : "")));
+      if (h.length) {
+        td.appendChild(el("p", "chart-title", "Rating this season"));
+        var chart = el("div", "chart");
+        td.appendChild(chart);
+        drawChart(chart, s, h);
+      }
       td.appendChild(t);
     };
     if (history) { fill(); return; }
     td.textContent = "Loading history…";
     loadHistory(function () { if (open && open.shooter === s.id) fill(); },
                 function () { td.textContent = "Couldn't load match history."; });
+  }
+
+  // Rating-over-time line for one shooter: start of season, then the rating after each match.
+  function drawChart(box, s, h) {
+    var NS = "http://www.w3.org/2000/svg";
+    function node(tag, attrs, cls) {
+      var e = document.createElementNS(NS, tag);
+      for (var k in attrs) e.setAttribute(k, attrs[k]);
+      if (cls) e.setAttribute("class", cls);
+      return e;
+    }
+    var pts = [{ t: null, r: s.start, label: "Start of season" }];
+    h.forEach(function (r) {
+      var m = matchById[r[0]] || { name: "Match " + r[0], end: "" };
+      pts.push({ t: m.end ? Date.parse(m.end + "T12:00:00Z") : null, r: r[4], d: r[4] - r[3], place: r[1], n: r[2],
+                 label: m.name, date: m.end ? fmtDate(m.end + " 00:00:00", true) : "", dropped: view === "mulligan" && r[0] === s.mulligan_drop });
+    });
+    var times = pts.filter(function (p) { return p.t; }).map(function (p) { return p.t; });
+    var t0 = Math.min.apply(null, times), t1 = Math.max.apply(null, times);
+    if (t1 === t0) t1 = t0 + 86400000;
+    pts[0].t = t0 - (t1 - t0) * 0.08 - 86400000;             // the start point sits just left of the first match
+    var W = Math.max(280, box.clientWidth || 600), H = 200, L = 44, R = 14, T = 14, B = 26;
+    var lo = Math.min.apply(null, pts.map(function (p) { return p.r; })), hi = Math.max.apply(null, pts.map(function (p) { return p.r; }));
+    var pad = Math.max(5, (hi - lo) * 0.15); lo -= pad; hi += pad;
+    var step = [5, 10, 20, 25, 50, 100, 200].filter(function (v) { return (hi - lo) / v <= 5; })[0] || 500;
+    lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
+    var x = function (t) { return L + (t - pts[0].t) / (t1 - pts[0].t) * (W - L - R); };
+    var y = function (r) { return T + (hi - r) / (hi - lo) * (H - T - B); };
+    var svg = node("svg", { viewBox: "0 0 " + W + " " + H, width: W, height: H, role: "img",
+                            "aria-label": "Rating after each match this season, from " + s.start.toFixed(1) + " to " + pts[pts.length - 1].r.toFixed(1) });
+    for (var v = lo; v <= hi; v += step) {
+      svg.appendChild(node("line", { x1: L, x2: W - R, y1: y(v), y2: y(v) }, "grid"));
+      var lbl = node("text", { x: L - 6, y: y(v) + 4, "text-anchor": "end" }, "axis"); lbl.textContent = v; svg.appendChild(lbl);
+    }
+    var first = pts[1], last = pts[pts.length - 1];
+    [[first, "start"], [last, "end"]].forEach(function (a) {
+      if (!a[0].date || (a[1] === "end" && pts.length < 3)) return;
+      var tx = node("text", { x: x(a[0].t), y: H - 8, "text-anchor": a[1] }, "axis"); tx.textContent = a[0].date; svg.appendChild(tx);
+    });
+    svg.appendChild(node("path", { d: pts.map(function (p, i) { return (i ? "L" : "M") + x(p.t).toFixed(1) + " " + y(p.r).toFixed(1); }).join(" ") }, "line"));
+    pts.forEach(function (p, i) {
+      svg.appendChild(node("circle", { cx: x(p.t), cy: y(p.r), r: 4 }, "pt" + (i === 0 ? " start" : p.dropped ? " dropped" : "")));
+    });
+    var cross = node("line", { y1: T, y2: H - B, visibility: "hidden" }, "cross"), focus = node("circle", { r: 6, visibility: "hidden" }, "focus");
+    svg.appendChild(cross); svg.appendChild(focus);
+    var hit = node("rect", { x: 0, y: 0, width: W, height: H }, "hit");
+    svg.appendChild(hit);
+    var tip = el("div", "tip"); tip.hidden = true;
+    box.appendChild(svg); box.appendChild(tip);
+    function show(i) {
+      var p = pts[i], px = x(p.t), py = y(p.r);
+      cross.setAttribute("x1", px); cross.setAttribute("x2", px); cross.setAttribute("visibility", "visible");
+      focus.setAttribute("cx", px); focus.setAttribute("cy", py); focus.setAttribute("visibility", "visible");
+      tip.textContent = "";
+      tip.appendChild(el("div", "", p.label + (p.dropped ? " (mulligan)" : "")));
+      if (p.date) tip.appendChild(el("div", "m", p.date + " · " + p.place + " / " + p.n));
+      var b = el("b", "", p.r.toFixed(1)); tip.appendChild(b);
+      if (p.d !== undefined) tip.appendChild(el("span", " " + tone(p.d), " " + signed(p.d)));
+      tip.hidden = false;
+      var scale = box.clientWidth / W, tw = tip.offsetWidth;
+      var left = px * scale + 10; if (left + tw > box.clientWidth) left = px * scale - tw - 10;
+      tip.style.left = Math.max(0, left) + "px";
+    }
+    hit.addEventListener("mousemove", function (e) {
+      var r = svg.getBoundingClientRect(), mx = (e.clientX - r.left) / r.width * W, best = 0;
+      pts.forEach(function (p, i) { if (Math.abs(x(p.t) - mx) < Math.abs(x(pts[best].t) - mx)) best = i; });
+      show(best);
+    });
+    hit.addEventListener("mouseleave", function () {
+      cross.setAttribute("visibility", "hidden"); focus.setAttribute("visibility", "hidden"); tip.hidden = true;
+    });
+    hit.addEventListener("touchstart", function (e) {
+      var t = e.touches[0], r = svg.getBoundingClientRect(), mx = (t.clientX - r.left) / r.width * W, best = 0;
+      pts.forEach(function (p, i) { if (Math.abs(x(p.t) - mx) < Math.abs(x(pts[best].t) - mx)) best = i; });
+      show(best);
+    }, { passive: true });
   }
 
   var historyWaiters = null;
