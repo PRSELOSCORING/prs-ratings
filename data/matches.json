@@ -335,6 +335,20 @@
    "start": "2026-11-08 02:00:00",
    "end": "2026-11-08 22:00:00",
    "canceled": false
+  },
+  "10962": {
+   "id": 10962,
+   "name": "2026 PRS Pro Series Finale Fueled by Hornady",
+   "start": "2026-11-07 14:00:00",
+   "end": "2026-11-08 21:00:00",
+   "canceled": false
+  },
+  "10959": {
+   "id": 10959,
+   "name": "2026 Bushnell GAP Grind Pro/Am (Pro Scores)",
+   "start": "2026-10-03 17:00:00",
+   "end": "2026-10-04 17:00:00",
+   "canceled": false
   }
  },
  "not_series": [
