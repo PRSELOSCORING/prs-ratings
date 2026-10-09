@@ -5,7 +5,6 @@ shooter_id,impact_name,possible_match,their_rating,why,action,first_seen
 1134,John Galati,John 4 Galati,776.9,similar spelling (92%),NOT linked - rated as new shooter,2026 Vortex Vengeance
 1137,John galati IV,John Galati,762.8,nickname / suffix / punctuation,linked automatically - please confirm,2026 Vortex Vengeance
 9684,David Wiese,"(same name, different id)",724.9,shared name,kept separate,
-3236,Ken Wheeler,"(same name, different id)",680.2,shared name,kept separate,
 25437,Zachery Shreve,"(same name, different id)",676.6,shared name,kept separate,
 1105,radek novak,"(same name, different id)",656.0,shared name,kept separate,
 1134,John Galati,"(same name, different id)",641.4,shared name,kept separate,
@@ -13,9 +12,9 @@ shooter_id,impact_name,possible_match,their_rating,why,action,first_seen
 2926,Michael Olson,"(same name, different id)",612.8,shared name,kept separate,
 1040,Daniel Wallace,"(same name, different id)",612.0,shared name,kept separate,
 6431,Sam Henderson,"(same name, different id)",603.9,shared name,kept separate,
+1200,Brian Lambert,"(same name, different id)",600.3,shared name,kept separate,
 8186,Michael Hill,Michael Cahill,600,similar spelling (92%),NOT linked - rated as new shooter,2026 Vortex Vengeance
 8232,Rich Saunders,Richard Saunders,600,nickname / suffix / punctuation,linked automatically - please confirm,2026 Thunder Beast Arms Co King of Coal Canyon
-1200,Brian Lambert,"(same name, different id)",597.8,shared name,kept separate,
 9289,Jeremy Bentham,"(same name, different id)",595.3,shared name,kept separate,
 8400,Michael Maron,Michael Martin,579.3,similar spelling (89%),NOT linked - rated as new shooter,Pigg River Precision H.A.M Presented by Leupold Optics
 9066,Dylan DD,Dylan Todd,573.7,similar spelling (89%),NOT linked - rated as new shooter,Pigg River Precision H.A.M Presented by Leupold Optics
@@ -32,15 +31,14 @@ shooter_id,impact_name,possible_match,their_rating,why,action,first_seen
 1517,David Wiese,"(same name, different id)",550,shared name,kept separate,
 129276,Hunter Larson,"(same name, different id)",550,shared name,kept separate,
 4395,Michael Olson,"(same name, different id)",550,shared name,kept separate,
-410,Ken Wheeler,"(same name, different id)",550,shared name,kept separate,
 138743,Tanner Cantrell,"(same name, different id)",550,shared name,kept separate,
 119321,Zachery Shreve,"(same name, different id)",550,shared name,kept separate,
+1891,Ryan Hey,"(same name, different id)",549.9,shared name,kept separate,
 13756,Blake Bunch,"(same name, different id)",549.0,shared name,kept separate,
-1891,Ryan Hey,"(same name, different id)",548.2,shared name,kept separate,
 119321,Zachery Shreve,Zach Shreve,544.9,similar spelling (88%),NOT linked - rated as new shooter,2026 Bushnell GAP Grind Pro/Am
-138741,Michael Schwartz,"(same name, different id)",543.0,shared name,kept separate,
+138741,Michael Schwartz,"(same name, different id)",544.5,shared name,kept separate,
+13605,Daniel Wallace,"(same name, different id)",541.9,shared name,kept separate,
 12023,Chris Wolf,"(same name, different id)",541.2,shared name,kept separate,
-13605,Daniel Wallace,"(same name, different id)",539.9,shared name,kept separate,
 755,Josh Botha,"(same name, different id)",539.7,shared name,kept separate,
 35884,Zachary Smith,Zach Smith,535.3,nickname / suffix / punctuation,linked automatically - please confirm,2026 Bushnell GAP Grind Pro/Am (Pro Scores)
 3227,Radek Novak,"(same name, different id)",531.6,shared name,kept separate,
@@ -56,23 +54,24 @@ shooter_id,impact_name,possible_match,their_rating,why,action,first_seen
 34154,Tom Roberts,"(same name, different id)",525,shared name,kept separate,
 3548,Alex Smith,Allen Smith,524.9,similar spelling (86%),NOT linked - rated as new shooter,2026 MDT Midsummer Madness PRS 2-day Pro Series Qualifier
 2793,Jose Garza,"(same name, different id)",518.8,shared name,kept separate,
+27229,Tom Roberts,"(same name, different id)",517.0,shared name,kept separate,
 126456,Joshua Brandt,Joshua Bandy,516.4,similar spelling (88%),NOT linked - rated as new shooter,THS Steel Challenge presented by TS Customs
-27229,Tom Roberts,"(same name, different id)",516.0,shared name,kept separate,
 3034,Ryan Marsh,"(same name, different id)",514.5,shared name,kept separate,
 1179,Gus Harding Smith,Oengus Harding Smith,512.6,similar spelling (92%),NOT linked - rated as new shooter,Foundation Stocks at Twisted Barrel Precision September 19th and 20th 2 day
 9978,Joshua Thomas,Josh Thomas,512.6,nickname / suffix / punctuation,linked automatically - please confirm,2026 Bushnell GAP Grind Pro/Am
 9789,Jeff Badley,"(same name, different id)",508.7,shared name,kept separate,
-7532,Ryan Marsh,"(same name, different id)",506.0,shared name,kept separate,
+7532,Ryan Marsh,"(same name, different id)",507.0,shared name,kept separate,
 37520,Nicholas Apone,Nicholas Jones,501.7,similar spelling (86%),NOT linked - rated as new shooter,KRG Windbreaker presented by Defiance Machine
-138764,Sam Henderson,"(same name, different id)",498.0,shared name,kept separate,
+138764,Sam Henderson,"(same name, different id)",499.0,shared name,kept separate,
 127166,Blake Bunch,"(same name, different id)",493.1,shared name,kept separate,
 12744,David Blake,David Baker,492.8,similar spelling (91%),NOT linked - rated as new shooter,Foundation Stocks at Twisted Barrel Precision September 19th and 20th 2 day
 14164,Mike Rogan,"(same name, different id)",492.5,shared name,kept separate,
 5886,Curtis Mitchell,Chris Mitchell,489.0,similar spelling (90%),NOT linked - rated as new shooter,Parma Precision Rifle Rumble VIII presented by Burris Optics
-138746,Jeremy Bentham,"(same name, different id)",488.0,shared name,kept separate,
+138746,Jeremy Bentham,"(same name, different id)",489.0,shared name,kept separate,
 37722,Thorunn Jonsson,Thorunn holm Jonsson,487.7,similar spelling (86%),NOT linked - rated as new shooter,2026 Bushnell GAP Grind Pro/Am (Pro Scores)
 126097,Christopher Wolf,Chris Wolf,481.1,nickname / suffix / punctuation,linked automatically - please confirm,SAPRL 2026 - Cactus Cup Presented By Lapua - PRS Pro Series (2 Day)
-138749,Travis Overfelt,"(same name, different id)",480.0,shared name,kept separate,
+138749,Travis Overfelt,"(same name, different id)",481.0,shared name,kept separate,
+8900,Travis overfelt,"(same name, different id)",476.3,shared name,kept separate,
 10602,Brax Schmeling,xBrax Schmeling,475.6,similar spelling (97%),NOT linked - rated as new shooter,Berger Precision Challenge
 34832,Joshua Schiemann,Josh Schiemann,475,nickname / suffix / punctuation,linked automatically - please confirm,Twisted Barrel Precision Scorcher IV by Leupold
 4395,Michael Olson,Michael Nelson,475,similar spelling (89%),NOT linked - rated as new shooter,THS Steel Challenge presented by TS Customs
@@ -91,7 +90,6 @@ shooter_id,impact_name,possible_match,their_rating,why,action,first_seen
 138734,Kyle Emmons,"(same name, different id)",475,shared name,kept separate,
 8258,Zack Moran,"(same name, different id)",475,shared name,kept separate,
 38596,Josh Deflon,"(same name, different id)",475,shared name,kept separate,
-8900,Travis overfelt,"(same name, different id)",474.4,shared name,kept separate,
 12785,Benjamin Wall,Benjamin Walker,469.8,similar spelling (86%),NOT linked - rated as new shooter,KRG Windbreaker presented by Defiance Machine
 4934,Michael Schwartz,"(same name, different id)",466.1,shared name,kept separate,
 4951,B.J. Hill,BJ Hill,457.8,similar spelling (88%),NOT linked - rated as new shooter,K&M Kahles Precision Rifle Competition PRS Pro Series Qualifier
