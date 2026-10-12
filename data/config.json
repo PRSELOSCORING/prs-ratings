@@ -6,7 +6,9 @@
  "min_points": 5000,
  "drop_disqualified": false,
  "refresh_days": 14,
- "exclude_matches": {},
+ "exclude_matches": {
+  "10959": "duplicate of 9819 (organizer's Pro Scores listing; same results, 8 shooters under different IDs)"
+ },
  "aliases": {
   "Morgan King": "Morgun King",
   "Dan Hereid": "Daniel Hereid",
