@@ -86,3 +86,15 @@ The next run (or **Run workflow**) recalculates everything with the fix.
 1. Run `python tools/seed_from_workbook.py "<workbook>.xlsx" "<column name>"`, or copy the final
    ratings from `docs/leaderboard.json` into a new seed.
 2. Update `season_label`, `season_start` and `season_end` in `data/config.json`.
+
+## Adding a shooter Impact Scoring left off
+
+If a shooter is missing from a match's listing (for example removed after a DQ), add them under
+`"manual_shooters"` in `data/config.json`, keyed by the match's Impact Scoring ID:
+
+```
+"manual_shooters": {"9988": [{"id": 1080, "name": "Derrick Warren", "points": 5500, "dq": true}]}
+```
+
+`points` is impacts × 100. They are placed by points among the posted field (after anyone tied with
+them) and the match is re-ranked. The next run recalculates the season.

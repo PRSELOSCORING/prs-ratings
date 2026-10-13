@@ -18,5 +18,16 @@
  },
  "id_links": {},
  "not_same_person": [],
- "team_match_class": "Pro"
+ "team_match_class": "Pro",
+ "manual_shooters": {
+  "9988": [
+   {
+    "id": 1080,
+    "name": "Derrick Warren",
+    "points": 5500,
+    "dq": true,
+    "note": "DQ'd; removed from Impact Scoring's listing. ~55 impacts before the DQ."
+   }
+  ]
+ }
 }

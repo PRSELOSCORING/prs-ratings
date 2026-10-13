@@ -204,6 +204,26 @@ def team_match_individuals(mid, live, cfg):
 # 3. ratings
 # ---------------------------------------------------------------------------
 
+def with_manual_entries(shooters, entries):
+    """
+    Add shooters that Impact Scoring left off a match (e.g. removed after a DQ). Config:
+        "manual_shooters": {"9988": [{"id": 1080, "name": "Derrick Warren", "points": 5500, "dq": true}]}
+    Each one is placed by points among the posted field (after anyone tied with them) and ranks are reshuffled.
+    """
+    if not entries:
+        return shooters
+    rows = [dict(s) for s in shooters if s["id"] not in {e["id"] for e in entries}]
+    for e in entries:
+        rows.append({"id": e["id"], "name": e["name"], "rank": None, "points": e["points"], "stagesProgressCount": e.get("stages"),
+                     "stagesCount": e.get("stages_total"), "matchDisqualified": bool(e.get("dq")), "matchHardDisqualified": False,
+                     "divisionName": e.get("division"), "_manual": True})
+    rows.sort(key=lambda s: (-(s["points"] or 0), s.get("_manual", False), s["rank"] or 10**9))
+    for i, s in enumerate(rows, 1):
+        s["rank"] = i
+        s.pop("_manual", None)
+    return rows
+
+
 def counts(s, cfg):
     """Removed from a match: fewer than 50 impacts, or disqualified."""
     if (s.get("points") or 0) < cfg["min_points"]:
@@ -247,6 +267,7 @@ def recompute(cfg, known):
                and not m.get("canceled")]
     for m in sorted(matches, key=lambda m: (m["end"], m["id"])):
         shooters = json.load(open(os.path.join(SCORES, f"{m['id']}.json"), encoding="utf-8"))
+        shooters = with_manual_entries(shooters, cfg.get("manual_shooters", {}).get(str(m["id"]), []))
         # Impact Scoring's rank already includes the tiebreaker, so finishing order is final order
         field_rows = sorted((s for s in shooters if counts(s, cfg)), key=lambda s: s["rank"])
         if not field_rows:
